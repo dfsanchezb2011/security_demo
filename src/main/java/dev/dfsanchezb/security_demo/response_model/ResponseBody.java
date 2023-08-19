@@ -1,5 +1,6 @@
 package dev.dfsanchezb.security_demo.response_model;
 
+import com.google.gson.Gson;
 import lombok.Data;
 
 @Data
@@ -13,5 +14,9 @@ public class ResponseBody <T> {
         this.apiCode = apiCode;
         this.apiMessage = apiMessage;
         this.apiData = apiData;
+    }
+
+    public String getBodyAsJsonString () {
+        return new Gson().toJson(this);
     }
 }

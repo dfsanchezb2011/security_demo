@@ -1,11 +1,15 @@
 package dev.dfsanchezb.security_demo.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import dev.dfsanchezb.security_demo.response_model.ResponseBody;
 import dev.dfsanchezb.security_demo.security.model.ApiUserDetails;
 import dev.dfsanchezb.security_demo.security.model.AuthCredentials;
 import dev.dfsanchezb.security_demo.security.service.TokenUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -20,8 +24,11 @@ import java.util.Collections;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        log.info("Starting authentication attempt.");
         AuthCredentials authCredentials;
 
         try {
@@ -32,6 +39,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(authCredentials.getEmail(), authCredentials.getPassword(), Collections.emptyList());
 
+        log.info("Authenticating user {}", authToken.getPrincipal());
         return getAuthenticationManager().authenticate(authToken);
     }
 
@@ -40,14 +48,23 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         ApiUserDetails userDetails = (ApiUserDetails) authResult.getPrincipal();
         String token = TokenUtils.createToken(userDetails.getUsername(), userDetails.getEmail());
 
-        response.addHeader("Authorization", "Bearer " + token);
-        response.setHeader("Content-Type", "application/json");
+        response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         ResponseBody<String> body = new ResponseBody<>(0, "Success", "Bearer " + token);
-        String mapStr = new Gson().toJson(body);
-        response.getWriter().write(mapStr);
+        response.getWriter().write(body.getBodyAsJsonString());
         response.getWriter().flush();
 
         super.successfulAuthentication(request, response, chain, authResult);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+        response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+        ResponseBody<String> body = new ResponseBody<>(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase(), failed.getMessage());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.getWriter().write(body.getBodyAsJsonString());
+        response.getWriter().flush();
     }
 }

@@ -20,7 +20,7 @@ public class TokenUtils {
     private static final long SECONDS = TimeUnit.SECONDS.toSeconds(60);
     private static final String ACCESS_TOKEN_SECRET_KEY = "Secur1ty/Dem04*ppl1cati0n";
     private static final byte[] ACCESS_KEY_ENCODED = Base64.getEncoder().encode(ACCESS_TOKEN_SECRET_KEY.getBytes());
-    private static final Long ACCESS_TOKEN_VALIDITY_SECONDS = (long) (SECONDS * MINUTES);
+    private static final Long ACCESS_TOKEN_VALIDITY_MILLISECONDS = (SECONDS * MINUTES * 1000);
 
     private TokenUtils() {
 
@@ -28,7 +28,7 @@ public class TokenUtils {
 
     public static String createToken(String name, String email) {
         log.info("Creating new token.");
-        long expirationTime = ACCESS_TOKEN_VALIDITY_SECONDS * 1000;
+        long expirationTime = ACCESS_TOKEN_VALIDITY_MILLISECONDS;
         Date dateIssued = new Date(System.currentTimeMillis());
         Date expirationDate = new Date(System.currentTimeMillis() + expirationTime);
 
@@ -61,7 +61,7 @@ public class TokenUtils {
 
             return new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
         } catch (JwtException e) {
-            log.error("Error at getting the consumer's email from token {}\nClass: {}\nMessage: {}", token, e.getClass(), e.getMessage());
+            log.error("Error at getting the consumer's email from token {}", token);
             log.error("Issue in Class: {}", e.getClass());
             log.error("Error Message: {}", e.getMessage());
             return null;
