@@ -14,3 +14,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
+
+
+rsa:
+  public-key: classpath:certs/public.pem
+  private-key: classpath:certs/private.pem
+  secret-key: HERE_YOUR_PASSWORD_HERE_YOUR_PASSWORD
+  # KeySystem values: rsa_key, secret_key
+  key-system: secret_key

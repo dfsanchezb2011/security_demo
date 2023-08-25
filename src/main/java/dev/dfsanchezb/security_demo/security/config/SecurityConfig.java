@@ -17,20 +17,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
 @AllArgsConstructor
+@Configuration
 public class SecurityConfig {
 
     private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     private UserDetailsService userDetailsService;
     private JWTAuthorizationFilter jwtAuthorizationFilter;
+    private final RsaKeyProperties rsaKeyProperties;
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity httpSecurity, AuthenticationManager authenticationManager) throws Exception {
         log.info("Establishing filter chain policies");
 
-        JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter();
+        JWTAuthenticationFilter jwtAuthenticationFilter = new JWTAuthenticationFilter(rsaKeyProperties);
         jwtAuthenticationFilter.setAuthenticationManager(authenticationManager);
         jwtAuthenticationFilter.setFilterProcessesUrl("/login");
 
